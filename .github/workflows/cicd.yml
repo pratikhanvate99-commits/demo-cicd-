@@ -40,6 +40,13 @@ jobs:
           path: target/surefire-reports/
           if-no-files-found: ignore
 
+      - name: Upload runnable application
+        uses: actions/upload-artifact@v4
+        with:
+          name: cicd-live-demo-jar
+          path: target/cicd-live-demo-1.0.0.jar
+          if-no-files-found: error
+
   quality:
     name: "3 Code Quality - SonarQube"
     runs-on: ubuntu-latest
@@ -138,27 +145,28 @@ jobs:
     name: "7 Deploy to Kubernetes"
     runs-on: ubuntu-latest
     needs: docker
-    if: github.event_name != 'pull_request' && needs.docker.outputs.publish_enabled == 'true'
+    if: github.event_name != 'pull_request'
     outputs:
       deploy_enabled: ${{ steps.preflight.outputs.deploy_enabled }}
     steps:
-      - name: Check Kubernetes credentials
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+      - name: Check Kubernetes and image credentials
         id: preflight
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+          IMAGE_PUBLISHED: ${{ needs.docker.outputs.publish_enabled }}
         run: |
-          if [[ -z "$KUBE_CONFIG" ]]; then
+          if [[ -z "$KUBE_CONFIG" || "$IMAGE_PUBLISHED" != "true" ]]; then
             echo "deploy_enabled=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Skipping Kubernetes deployment; configure KUBE_CONFIG to enable it."
+            echo "::warning::No live cluster/image credentials; validating Kubernetes manifests instead of deploying."
+            kubectl kustomize k8s > "$RUNNER_TEMP/rendered-manifests.yaml"
+            echo "Kubernetes manifests rendered successfully."
           else
             echo "deploy_enabled=true" >> "$GITHUB_OUTPUT"
           fi
-      - name: Checkout source
-        if: steps.preflight.outputs.deploy_enabled == 'true'
-        uses: actions/checkout@v4
-      - name: Install kubectl
-        if: steps.preflight.outputs.deploy_enabled == 'true'
-        uses: azure/setup-kubectl@v4
       - name: Configure cluster access
         if: steps.preflight.outputs.deploy_enabled == 'true'
         env:
@@ -186,15 +194,41 @@ jobs:
   verify:
     name: "8 Smoke Test and Deployment Verification"
     runs-on: ubuntu-latest
-    needs: deploy
-    if: needs.deploy.outputs.deploy_enabled == 'true'
+    needs: [build-test, deploy]
+    if: always() && github.event_name != 'pull_request' && needs.build-test.result == 'success'
     steps:
-      - name: Verify application endpoint
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Download built application
+        uses: actions/download-artifact@v4
+        with:
+          name: cicd-live-demo-jar
+          path: target
+      - name: Start app and run local smoke tests
+        run: |
+          java -jar target/cicd-live-demo-1.0.0.jar --server.port=18080 > "$RUNNER_TEMP/app.log" 2>&1 &
+          APP_PID=$!
+          trap 'kill "$APP_PID" 2>/dev/null || true' EXIT
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:18080/actuator/health; then
+              break
+            fi
+            sleep 2
+          done
+          curl --fail --show-error http://127.0.0.1:18080/
+          curl --fail --show-error http://127.0.0.1:18080/api/hello
+          curl --fail --show-error http://127.0.0.1:18080/actuator/health
+      - name: Verify deployed endpoint when configured
         env:
           APP_BASE_URL: ${{ secrets.APP_BASE_URL }}
         run: |
-          if [ -z "$APP_BASE_URL" ]; then
-            echo "APP_BASE_URL secret is not set; skipping external smoke test."
+          if [[ -z "$APP_BASE_URL" ]]; then
+            echo "::warning::APP_BASE_URL is not set; the local application smoke test passed, but no external endpoint was checked."
             exit 0
           fi
           curl --fail --retry 10 --retry-delay 5 --retry-connrefused "$APP_BASE_URL/"
