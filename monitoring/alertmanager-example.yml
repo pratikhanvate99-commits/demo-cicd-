@@ -1,0 +1,12 @@
+# EXAMPLE ONLY — do not commit real credentials.
+# Configure Alertmanager separately and replace receiver details.
+route:
+  receiver: demo-team
+  group_by: ["alertname", "namespace"]
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 2h
+receivers:
+  - name: demo-team
+    # Add an email_configs, slack_configs, or webhook_configs section here.
+    # Keep tokens/passwords in a secret manager, never in Git.

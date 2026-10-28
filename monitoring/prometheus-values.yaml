@@ -1,0 +1,29 @@
+# Example Helm values for kube-prometheus-stack (Prometheus + Grafana + Alertmanager).
+# Install with the official prometheus-community/kube-prometheus-stack chart.
+# Review passwords, ingress, storage, and resource requests before using outside a local demo.
+grafana:
+  enabled: true
+  adminUser: admin
+  # Set this via a Kubernetes Secret for a real environment; demo value only.
+  adminPassword: change-me-before-demo
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false
+
+prometheus:
+  enabled: true
+  prometheusSpec:
+    retention: 3d
+    serviceMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+alertmanager:
+  enabled: true
+  alertmanagerSpec:
+    replicas: 1
+
+kubeStateMetrics:
+  enabled: true
+nodeExporter:
+  enabled: true
