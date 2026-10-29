@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101827">
+  <title>CI/CD Live Demo</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0b1120;--panel:#121b2d;--panel2:#18243a;--text:#eff5ff;--muted:#9aabc4;--line:#283650;--cyan:#57e0d0;--blue:#7ba6ff;--green:#7ee6a2}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 80% 0,#1d3152 0,transparent 42%),var(--bg);color:var(--text);font:16px/1.5 Inter,Segoe UI,Arial,sans-serif;min-height:100vh}
+    .wrap{width:min(1080px,92%);margin:auto}.top{display:flex;align-items:center;justify-content:space-between;padding:26px 0;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:12px;font-weight:700;letter-spacing:.02em}.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:linear-gradient(135deg,var(--cyan),var(--blue));color:#091326;font-size:19px}.top small,.eyebrow{color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-size:11px;font-weight:700}
+    .hero{padding:58px 0 30px;display:grid;grid-template-columns:1.35fr .8fr;gap:38px;align-items:center}.eyebrow{color:var(--cyan)}h1{font-size:clamp(38px,6vw,64px);line-height:1.02;letter-spacing:-.045em;margin:14px 0 18px;max-width:670px}.sub{color:var(--muted);max-width:610px;font-size:17px}.status-card,.panel{background:linear-gradient(145deg,rgba(25,38,61,.96),rgba(16,25,42,.96));border:1px solid var(--line);border-radius:20px;box-shadow:0 22px 65px #0003}.status-card{padding:24px}.status-head{display:flex;justify-content:space-between;align-items:center}.pill{padding:6px 10px;border-radius:99px;background:#183b34;color:var(--green);font-size:12px;font-weight:700}.pulse{display:inline-block;width:8px;height:8px;margin-right:6px;background:var(--green);border-radius:50%;box-shadow:0 0 12px var(--green)}.status-card h2{font-size:22px;margin:26px 0 4px}.status-card p{margin:0;color:var(--muted)}.meter{height:7px;margin:22px 0 10px;background:#26344c;border-radius:9px;overflow:hidden}.meter i{display:block;width:100%;height:100%;background:linear-gradient(90deg,var(--cyan),var(--blue));border-radius:9px}.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+    .section-title{display:flex;justify-content:space-between;align-items:end;margin:30px 0 16px}.section-title h2{margin:0;font-size:22px;letter-spacing:-.02em}.section-title span{color:var(--muted);font-size:13px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.step,.endpoint{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}.step strong{display:block;font-size:14px;margin:7px 0 3px}.step p,.endpoint p{color:var(--muted);font-size:12px;margin:0}.num{color:var(--cyan);font-size:11px;font-weight:800;letter-spacing:.1em}.bottom{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0 50px}.panel{padding:20px}.panel h3{margin:0 0 14px;font-size:16px}.endpoints{display:grid;gap:9px}.endpoint{display:flex;align-items:center;justify-content:space-between;padding:11px 13px}.endpoint code{color:var(--cyan);font-size:12px}.endpoint span{color:var(--muted);font-size:12px}.btns{display:flex;gap:8px;margin-top:14px}.btn{cursor:pointer;border:1px solid var(--line);border-radius:9px;color:var(--text);background:var(--panel2);padding:9px 12px;font-weight:600}.btn:hover{border-color:var(--cyan)}#result{min-height:22px;margin-top:12px;color:var(--green);font-size:13px}.foot{padding:0 0 28px;color:#7587a3;font-size:12px;display:flex;justify-content:space-between}
+    @media(max-width:760px){.hero{grid-template-columns:1fr;padding-top:38px}.grid{grid-template-columns:repeat(2,1fr)}.bottom{grid-template-columns:1fr}.top small{display:none}}@media(max-width:420px){.grid{grid-template-columns:1fr 1fr}.section-title span{max-width:150px;text-align:right}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top"><div class="brand"><div class="mark">↗</div><div>CI/CD LIVE DEMO<br><small>Spring Boot · GitHub Actions</small></div></div><small>Build · Scan · Verify</small></header>
+    <main>
+      <section class="hero">
+        <div><div class="eyebrow">A tiny app with a full pipeline story</div><h1>From a code change to a working app.</h1><p class="sub">This demo shows how a commit is built, tested, scanned, and checked before it can move toward deployment.</p></div>
+        <aside class="status-card"><div class="status-head"><span class="eyebrow">Application status</span><span class="pill"><i class="pulse"></i>OPERATIONAL</span></div><h2>Ready for the walkthrough</h2><p>Spring Boot is responding. Try the API and health checks below.</p><div class="meter"><i></i></div><div class="meta"><span>Service health</span><span id="health-label">Checking…</span></div></aside>
+      </section>
+      <section><div class="section-title"><h2>The pipeline</h2><span>Eight steps from checkout to verification</span></div><div class="grid">
+        <article class="step"><span class="num">01</span><strong>Checkout</strong><p>Get the source from GitHub.</p></article>
+        <article class="step"><span class="num">02</span><strong>Build & test</strong><p>Maven compiles and tests the app.</p></article>
+        <article class="step"><span class="num">03</span><strong>Code quality</strong><p>SonarQube analysis when configured.</p></article>
+        <article class="step"><span class="num">04</span><strong>Security scan</strong><p>Trivy checks dependencies.</p></article>
+        <article class="step"><span class="num">05</span><strong>Containerize</strong><p>Build a Docker image.</p></article>
+        <article class="step"><span class="num">06</span><strong>Publish</strong><p>Push to Docker Hub when configured.</p></article>
+        <article class="step"><span class="num">07</span><strong>Deploy</strong><p>Kubernetes deploy or manifest validation.</p></article>
+        <article class="step"><span class="num">08</span><strong>Smoke test</strong><p>Check app endpoints respond.</p></article>
+      </div></section>
+      <section class="bottom">
+        <div class="panel"><h3>Try the live endpoints</h3><div class="endpoints"><div class="endpoint"><code>GET /api/hello</code><span>Greeting API</span></div><div class="endpoint"><code>GET /actuator/health</code><span>Health check</span></div></div><div class="btns"><button class="btn" id="hello">Test API</button><button class="btn" id="check">Check health</button></div><div id="result" aria-live="polite"></div></div>
+        <div class="panel"><h3>What this demo proves</h3><p class="sub" style="font-size:14px;margin:0">The app and automated checks are working. A live Docker publish or Kubernetes deployment needs the matching GitHub repository secrets. Without a cluster, the workflow still validates the manifests and runs a local smoke test.</p><div class="btns"><a class="btn" style="text-decoration:none" href="https://github.com/pratikhanvate99-commits/demo-cicd-/actions">Open GitHub Actions ↗</a></div></div>
+      </section>
+    </main>
+    <footer class="foot"><span>CI/CD Live Demo</span><span>Java 21 · Spring Boot · Maven</span></footer>
+  </div>
+  <script>
+    const result=document.getElementById('result');
+    async function checkHealth(){try{const r=await fetch('/actuator/health');const d=await r.json();document.getElementById('health-label').textContent=d.status==='UP'?'All systems up':'Check required';return d.status==='UP'}catch{document.getElementById('health-label').textContent='Unavailable';return false}}
+    document.getElementById('hello').addEventListener('click',async()=>{try{const r=await fetch('/api/hello');const d=await r.json();result.textContent=d.message}catch{result.textContent='API request failed'}});
+    document.getElementById('check').addEventListener('click',async()=>{const ok=await checkHealth();result.textContent=ok?'Health endpoint: UP':'Could not reach health endpoint'});
+    checkHealth();
+  </script>
+</body>
+</html>
